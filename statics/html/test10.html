@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript">
+
+        window.onload=function () {
+            var oInput1=document.getElementById('input1')
+            var oInput2=document.getElementById('input2')
+            var oA=document.getElementById('link1')
+            //读取属性
+            var val1=oInput1.value;
+            var val2=oInput2.value;
+            var nam=oInput1.name;
+            var links=oA.href;
+            //写（设置）属性
+            oA.style[val1]=val2;
+            console.log(oInput1.style[oInput1.value="adsff"])
+        }
+
+
+    </script>
+</head>
+<body>
+<input type="text" name="setattr" id="input1" value="fontSize">
+<input type="text" name="setnum" id="input2" value="30px">
+<a href="http://www.itcast.cn" id="link1">传智播客</a>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="../js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('.div1').css({background:'gold'});
+            $('.div1').addClass('big');
+            $('.div1').removeClass('div1');
+            $('#span01').parent().css({width:'100px',height:'100px',background:'gold'});
+            $('#span02').closest('div').css({width:'200px',height:'200px',background:'pink'})
+            $('.list').children().css({background:'gold',height:'30px',marginBottom:'10px'}).end().css({background:'red'});
+            $( '.list2 li:eq(0)' ).css({background:'gold'}).siblings().css({background:'green'});
+            $('#div2').find('.link1').css({color:'red'});
+            
+        })
+
+
+
+    </script>
+
+    <style type="text/css">
+        .big{
+            font-size: 30px;
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="div1">这是一个div元素</div>
+    <div>这是第二个div元素</div>
+    <p>这是一个p元素</p>
+
+    <div>
+        <a href="#">百度网</a>
+        <span id="span01">span 元素</span>
+    </div>
+
+    <div id="div2">
+        <p>
+            <a href="#" class="link1">腾讯网</a>
+            <span id="span02">span元素</span>
+        </p>
+    </div>
+
+    <ul class="list">
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+        <li>8</li>
+    </ul>
+    <ul class="list2">
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+    </ul>
+</body>
+</html>

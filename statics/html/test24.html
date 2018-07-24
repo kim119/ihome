@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script type="text/javascript">
+
+        window.onload=function () {
+
+
+            var Dat=window.location.search
+
+            console.log("data"+Dat)
+
+            var hash=window.location.hash
+
+             console.log("hash"+hash)
+
+            var oSpan=document.getElementById('span01')
+
+            console.log("oSpan"+oSpan)
+
+
+            var arr=Dat.split('=');
+
+            var name=arr[1]
+
+            console.log(name)
+
+            oSpan.innerHTML=name;
+
+            alert(hash)
+
+        }
+    </script>
+</head>
+<body>
+<div>欢迎<span id="span01"></span>访问我的主页！</div>
+
+</body>
+</html>

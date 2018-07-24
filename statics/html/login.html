@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登陆</title>
+    <link rel="stylesheet" href="../css/ihome/login.css">
+    <script type="text/javascript" src="../js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+
+</head>
+<body>
+    <div class="container">
+        <div class="log-bar"> <a href="/"><img src="../images/logo@128x59.png"></a></div>
+            <form class="from-login form-group-lg">
+                <div class="form-group from-group-lg">
+                    <div class="input-group">
+                        <div class="input-group-addon"><i class="fa fa-user fa-log fa-fw"></i></div>
+                        <input type="number" class="form-control" name="mobile" id="mobile" placeholder="手机号">
+                    </div>
+                </div>
+                <div class="error-msg" id="mobile-err"><i class="fa fa-exclamation-circle"></i><span></span></div>
+                 <div class="form-group  from-group-lg">
+                     <div class="input-group">
+                        <div class="input-group-addon"><i class="fa fa-lock fa-lg fa-fw"></i></div>
+                        <input type="password" class="form-control" name="password" id="password" placeholder="密码">
+                     </div>
+                </div>
+                <div class="error-msg" id="password-err"><i class="fa fa-exclamation-circle"></i><span></span></div>
+                <button type="submit" class="btn btn-lg btn-theme btn-block">登陆</button>
+                <p class="register-a">没有账号, <a href="/register.html">立即注册</a></p>
+            </form>
+        </div>
+</body>
+</html>

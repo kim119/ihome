@@ -1,0 +1,7 @@
+*.json
+.python
+.idea/
+lib/
+include/
+bin/
+

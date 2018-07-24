@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript">
+
+
+
+        window.onload=function () {
+
+        var oDiv=document.getElementById('div1');
+
+        console.log(oDiv);
+        oDiv.title="我看到了";
+
+       var oa =document.getElementById('link1');
+       oa.href="http://www.baidu.com";
+       oa.title="go to baidu";
+       alert(oa.id)
+
+        }
+
+
+    </script>
+</head>
+<body>
+
+<div id="div1" class="div1" title="这是div元素，are you see">这是一个div元素</div>
+<a href="#" id="link1" title="0">百度网</a>
+
+</body>
+</html>

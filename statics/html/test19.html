@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>计算器</title>
+
+    <script type="text/javascript">
+
+
+     function count () {
+
+            var  text1=document.getElementById('text1');
+            var  text2=document.getElementById('text2');
+            var  fuhaoId=document.getElementById('fuhao');
+
+         if(!isInterger(parseInt(text1.value))||!isInterger(parseInt(text2.value))){
+                alert("请输入正常的字符");
+                return;
+         }
+
+
+           var result="";
+           switch (fuhaoId.options.selectedIndex) {
+
+               case 0:
+                  result= parseFloat(text1.value)+parseFloat(text2.value)
+
+                   break
+               case 1:
+                   result= text1.value-text2.value
+                   break
+               case 2:
+                   result= text1.value*text2.value
+                   break
+               case 3:
+                   result= text1.value/text2.value
+                   break
+
+
+           }
+
+           console.log(result)
+
+
+
+
+
+
+        }
+
+        //判断是否是数字类型
+        function isInterger(obj) {
+
+            return typeof obj==='number'&& obj%1===0
+
+        }
+
+
+
+    </script>
+
+</head>
+<body>
+
+<input type="number" id="text1" name="">
+
+<select id="fuhao">
+    <option value="0">+</option>
+    <option value="1">-</option>
+    <option value="2">*</option>
+    <option value="3">/</option>
+</select>
+<input type="number" id="text2" name="">
+<input type="button" name="" value="计算" onclick="count()">
+
+
+</body>
+</html>
