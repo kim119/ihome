@@ -1,7 +1,6 @@
 # coding:utf-8
 import json
 import logging
-
 import constants
 from handlers.BaseHandler import BaseHandler
 from utils.response_code import RET
