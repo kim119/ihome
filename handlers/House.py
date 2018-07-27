@@ -3,6 +3,7 @@ import json
 import logging
 import constants
 from handlers.BaseHandler import BaseHandler
+from utils.commons import required_login
 from utils.response_code import RET
 
 
@@ -48,3 +49,36 @@ class AreaInfoHAndler(BaseHandler):
             logging.error(e)
 
         self.write(dict(errcode=RET.OK, errmsg="OK", data=data))
+
+
+""""""
+
+
+class MyHousesHandler(BaseHandler):
+
+    @required_login
+    def get(self):
+        user_id = self.session.data["user_id"]
+        try:
+            sql = "select a.hi_house_id, a.hi_title,a.hi_price,a.hi_ctime,b.ai_name,a.hi_index_image_url" \
+                  "from ih_house_info a inner join ih_area_info b on a.hi_area_id=b.ao_area_id where a.hi_user_id=%s;"
+            ret = self.db.query(sql, user_id)
+        except Exception as e:
+            logging.error(e)
+            return self.write({"errcode": RET.DBERR, "errmsg": "get data erro"})
+        houses = []
+        if ret:
+            for l in ret:
+                house = {
+                    "house_id": l["hi_house_id"],
+                    "title": l["hi_title"],
+                    "price": l["hi_price"],
+                    "ctime": l["hi_ctime"].strftime("%Y-%m-%d"),
+                    "area_name": l["ai_name"],
+                    "img_url": constants.QINIU_URL_PREFIX + l["hi_index_image_url"] if l["hi_index_image_url"] else ""
+
+                }
+                houses.append(house)
+        self.write({"errcode": RET.OK, "errmsg": "OK", "houses": houses})
+
+    pass
