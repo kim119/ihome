@@ -5,6 +5,7 @@ import constants
 from handlers.BaseHandler import BaseHandler
 from utils.commons import required_login
 from utils.response_code import RET
+from utils.session import Session
 
 
 class AreaInfoHAndler(BaseHandler):
@@ -155,4 +156,54 @@ class HouseInfoHandler(BaseHandler):
 
     def get(self):
         """获取房屋信息"""
+        session = Session(self)
+        user_id = session.data.get("user_id", "-1")
+        house_id = self.get_argument("house_id")
+        # 效验参数
+        if not house_id:
+            return self.write(dict(errcode=RET.PARAMERR, errmsg="缺少参数"))
+        # 先从 redis缓存中获取信息
+        try:
+            ret = self.redis().get("house_info_%s" % house_id)
+        except Exception as e:
+            logging.error(e)
+            ret = None
+        if ret:
+            # 此时从redis中获取到的是缓存的json格式数据
+            resp = '{"errcode":0,"errmsg":"OK","data":%s,"user_id":%s}' % (ret, user_id)
+            return self.write(resp)
 
+        # 查询数据库
+        # 查询房屋基本信息
+
+        sql = "select hi_title, hi_price,hi_address,hi_room_count,hi_house_unit,hi_capacity,hi_beds," \
+              "hi_deposit,hi_min_days,hi_max_days,up_name,up_avatar,hi_user_id" \
+              "from ih_house_info inner join ih_user_profile on hi_user_id=up_user_id where hi_house_id=%s"
+
+        try:
+            ret = self.db.get(sql, house_id)
+        except Exception as e:
+            logging.error(e)
+            return self.write(dict(errcode=RET.DBERR, errmsg="查询错误"))
+        if not ret:
+            return self.write(dict(errcode=RET.NODATA, errmsg="查无此房"))
+
+        data = {
+            "hid": house_id,
+            "user_id": ret["hi_user_id"],
+            "title": ret["hi_title"],
+            "price": ret["hi_price"],
+            "address": ret["hi_address"],
+            "room_count": ret["hi_room_count"],
+            "acreage": ret["hi_acrege"],
+            "unit": ret["hi_house_unit"],
+            "capacity": ret["hi_capacity"],
+            "beds": ret["hi_beds"],
+            "deposit": ret["hi_deposit"],
+            "min_days": ret["hi_min_days"],
+            "max_days": ret["hi_max_days"],
+            "user_name": ret["up_name"],
+            "user_avatar": constants.QINIU_URL_PREFIX + ret["up_avatar"] if ret.get("up_avatar") else ""
+        }
+        # 查询房屋的图片xinx
+        sql = "select hi_url from ih_home_image where hi_houser_id=%s"
