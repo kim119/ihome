@@ -1,6 +1,8 @@
 # coding:utf-8
 import json
 import logging
+import math
+
 import constants
 from handlers.BaseHandler import BaseHandler
 from utils.commons import required_login
@@ -249,3 +251,59 @@ class HouseInfoHandler(BaseHandler):
             logging.error(e)
         resp = '{"errcode": "0", "errmsg":"OK","data":%s,"user_id":%s}' % (json_data, user_id)
         self.write(resp)
+
+
+class HouseListHandler(BaseHandler):
+    """房源列表页面"""
+
+    def get(self):
+        # 获取参数
+        start_date = self.get_argument("sd", "")
+        end_date = self.get_argument("ed", "")
+        area_id = self.get_argument("aid", "")
+        sort_key = self.get_argument("sk", "new")
+        page = self.get_argument("p", "")
+
+        # 检查参数
+        sql = "select distinct hi_title,hi_house_id,hi_price,hi_room_count,hi_address,hi_order_count,up_avatar," \
+              "hi_index_image_url,hi_ctime" \
+              " from ih_house_info inner join ih_user_profile on hi_user_id=up_user_id left join ih_order_info" \
+              " on hi_house_id=oi_house_id"
+        sql_total_count = "select count(distinct hi_house_id) count from ih_house_info inner join ih_user_profile on hi_user_id=up_user_id " \
+                          "left join ih_order_info on hi_house_id=oi_house_id"
+        sql_where = []
+        sql_params = {}
+
+        if start_date and end_date:
+            sql_part = "((oi_begin_date>%(end_date)s or oi_end_date<%(start_date)s) " \
+                       "or (oi_begin_date is null and oi_end_date is null))"
+            sql_where.append(sql_part)
+            sql_params["start_date"] = start_date
+            sql_params["end_date"] = end_date
+        elif start_date:
+            sql_part = "(oi_end_date<%(start_date)s or (oi_begin_date is null and oi_end_date is null))"
+            sql_where.append(sql_part)
+            sql_params["start_date"] = start_date
+        elif end_date:
+            sql_part = "(oi_begin_date>%(end_date)s or (oi_begin_date is null and oi_end_date is null))"
+            sql_where.append(sql_part)
+            sql_params["end_date"] = end_date
+        if area_id:
+            sql_part = "hi_area_id=%(area_id)s"
+            sql_where.append(sql_part)
+            sql_params["area_id"] = area_id
+        if sql_where:
+            sql += " where "
+            sql += " and ".join(sql_where)
+
+        try:
+            ret = self.db.get(sql_total_count, **sql_params)
+        except Exception as e:
+            logging.error(e)
+            total_page = -1
+
+        else:
+            total_page = int(math.ceil(ret["count"] / float(constants.HOUSE_LIST_PAGE_CAPACITY)))
+            page = int(page)
+            if page > total_page:
+                return self.write(dict(errcode=RET.OK, errmsg="OK", data=[], total_page=total_page))
