@@ -307,3 +307,101 @@ class HouseListHandler(BaseHandler):
             page = int(page)
             if page > total_page:
                 return self.write(dict(errcode=RET.OK, errmsg="OK", data=[], total_page=total_page))
+        # 排序
+        if "new" == sort_key:  # 按最新上传时间排序
+            sql += " order by hi_ctime desc"
+        elif "booking" == sort_key:  # 最受欢迎
+            sql += " order by hi_order_count desc"
+        elif "price-inc" == sort_key:  # 价格由低到高
+            sql += " order by hi_price asc"
+        elif "price-des" == sort_key:  # 价格由高到低
+            sql += " order by hi_price desc"
+
+        # 分页
+        # limit 10 返回前10条
+        # limit 20,3 从20条开始，返回3条数据
+        if 1 == page:
+            sql += " limit %s" % constants.HOUSE_LIST_PAGE_CAPACITY
+        else:
+            sql += " limit %s,%s" % (
+            (page - 1) * constants.HOUSE_LIST_PAGE_CAPACITY, constants.HOUSE_LIST_PAGE_CAPACITY)
+
+        logging.debug(sql)
+        try:
+            ret = self.db.query(sql, **sql_params)
+        except Exception as e:
+            logging.error(e)
+            return self.write(dict(errcode=RET.DBERR, errmsg="查询出错"))
+        data = []
+        if ret:
+            for l in ret:
+                house = dict(
+                    house_id=l["hi_house_id"],
+                    title=l["hi_title"],
+                    price=l["hi_price"],
+                    room_count=l["hi_room_count"],
+                    address=l["hi_address"],
+                    order_count=l["hi_order_count"],
+                    avatar=constants.QINIU_URL_PREFIX + l["up_avatar"] if l.get("up_avatar") else "",
+                    image_url=constants.QINIU_URL_PREFIX + l["hi_index_image_url"] if l.get(
+                        "hi_index_image_url") else ""
+                )
+                data.append(house)
+        self.write(dict(errcode=RET.OK, errmsg="OK", data=data, total_page=total_page))
+
+
+class HouseListRedisHandler(BaseHandler):
+    """使用了缓存的房源列表页面"""
+
+    def get(self):
+        # 获取参数
+        start_date = self.get_argument("sd", "")
+        end_date = self.get_argument("ed", "")
+        area_id = self.get_argument("aid", "")
+        sort_key = self.get_argument("sk", "new")
+        page = self.get_argument("p", "1")
+
+        # 先从redis中获取数据
+        try:
+            redis_key = "houses_%s_%s_%s_%s" % (start_date, end_date, area_id, sort_key)
+            ret = self.redis.hget(redis_key, page)
+        except Exception as e:
+            logging.error(e)
+            ret = None
+        if ret:
+            logging.info("hit redis")
+            return self.write(ret)
+
+        # 数据查询
+        sql = "select distinct hi_title,hi_house_id,hi_price,hi_room_count,hi_address,hi_order_count,up_avatar,hi_index_image_url,hi_ctime" \
+              " from ih_house_info inner join ih_user_profile on hi_user_id=up_user_id left join ih_order_info" \
+              " on hi_house_id=oi_house_id"
+
+        sql_total_count = "select count(distinct hi_house_id) count from ih_house_info inner join ih_user_profile on hi_user_id=up_user_id " \
+                          "left join ih_order_info on hi_house_id=oi_house_id"
+        sql_where = []  # 用来保存sql语句的where条件
+        sql_params = {}  # 用来保存sql查询所需的动态数据
+
+        if start_date and end_date:
+            sql_part = "((oi_begin_date>%(end_date)s or oi_end_date<%(start_date)s) " \
+                       "or (oi_begin_date is null and oi_end_date is null))"
+            sql_where.append(sql_part)
+            sql_params["start_date"] = start_date
+            sql_params["end_date"] = end_date
+        elif start_date:
+            sql_part = "(oi_end_date<%(start_date)s or (oi_begin_date is null and oi_end_date is null))"
+            sql_where.append(sql_part)
+            sql_params["start_date"] = start_date
+        elif end_date:
+            sql_part = "(oi_begin_date>%(end_date)s or (oi_begin_date is null and oi_end_date is null))"
+            sql_where.append(sql_part)
+            sql_params["end_date"] = end_date
+
+        if area_id:
+            sql_part = "hi_area_id=%(area_id)s"
+            sql_where.append(sql_part)
+            sql_params["area_id"] = area_id
+
+        if sql_where:
+            sql += " where "
+            sql += " and ".join(sql_where)
