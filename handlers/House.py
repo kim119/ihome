@@ -205,5 +205,47 @@ class HouseInfoHandler(BaseHandler):
             "user_name": ret["up_name"],
             "user_avatar": constants.QINIU_URL_PREFIX + ret["up_avatar"] if ret.get("up_avatar") else ""
         }
-        # 查询房屋的图片xinx
+        # 查询房屋的图片信息
         sql = "select hi_url from ih_home_image where hi_houser_id=%s"
+
+        try:
+            ret = self.db.query(sql, house_id)
+        except Exception as e:
+            logging.error(e)
+            ret = None
+
+        # 如果查询到设施
+        facilities = []
+        if ret:
+            for facility in ret:
+                facilities.append(facility["hf_facility_id"])
+        data["facilities"] = facilities
+
+        # 查询评论信息
+        sql = "select oi_comment,up_name,oi_utime,up_mobile from ih_order_info inner  join ih_user_profile" \
+              "on oi_user_id=up_user_id where oi_house_id=%s and oi_status=4 and oi_comment is not null "
+
+        try:
+            ret = self.db.query(sql, house_id)
+        except Exception as e:
+            logging.error(e)
+            ret = None
+        comments = []
+        if ret:
+            for comment in ret:
+                comments.append(
+                    dict(user_name=comment["up_name"] if comment["up_name"] != comment["up_mobile"] else "匿名用户",
+                         content=comment["io_comment"],
+                         ctime=comment["oi_utime"].strftime("%Y-%m-%d %H:%M:%S")
+                         ))
+        data["comments"] = comments
+
+        # 存入到redis中
+        json_data = json.dumps(data)
+
+        try:
+            self.redis().setex("house_info_%s" % house_id, constants.REDIS_HOUSE_INFO_EXPIRES_SECONDES, json_data)
+        except Exception as e:
+            logging.error(e)
+        resp = '{"errcode": "0", "errmsg":"OK","data":%s,"user_id":%s}' % (json_data, user_id)
+        self.write(resp)
