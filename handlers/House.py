@@ -152,3 +152,7 @@ class HouseInfoHandler(BaseHandler):
                 return self.write(dict(errcode=RET.DBERR, errmsg="no data save"))
         # 返回
         self.write(dict(errcode=RET.OK, errmsg="OK", house_id=house_id))
+
+    def get(self):
+        """获取房屋信息"""
+
