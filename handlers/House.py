@@ -405,3 +405,26 @@ class HouseListRedisHandler(BaseHandler):
         if sql_where:
             sql += " where "
             sql += " and ".join(sql_where)
+
+# 有了where条件，先查询总条目数
+        try:
+            ret = self.db.get(sql_total_count, **sql_params)
+        except Exception as e:
+            logging.error(e)
+            total_page = -1
+        else:
+            total_page = int(math.ceil(ret["count"] / float(constants.HOUSE_LIST_PAGE_CAPACITY)))
+            page = int(page)
+            if page>total_page:
+                return self.write(dict(errcode=RET.OK, errmsg="OK", data=[], total_page=total_page))
+
+        # 排序
+        if "new" == sort_key: # 按最新上传时间排序
+            sql += " order by hi_ctime desc"
+        elif "booking" == sort_key: # 最受欢迎
+            sql += " order by hi_order_count desc"
+        elif "price-inc" == sort_key: # 价格由低到高
+            sql += " order by hi_price asc"
+        elif "price-des" == sort_key: # 价格由高到低
+            sql += " order by hi_price desc"
+
